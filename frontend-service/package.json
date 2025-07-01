@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc --build tsconfig.json",
     "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
     "test": "vitest"
   },
   "author": "Lukas Zöllner",
@@ -19,6 +20,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "node-rdkafka": "^3.1.0"
+    "mongodb": "^6.17.0",
+    "node-rdkafka": "^3.1.0",
+    "redis": "^5.5.6"
   }
 }

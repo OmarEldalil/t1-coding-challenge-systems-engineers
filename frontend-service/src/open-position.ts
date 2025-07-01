@@ -1,5 +1,6 @@
 import Kafka from 'node-rdkafka';
 import { toTradeMessage } from './transformation';
+import {KAFKA_BROKER_URL, TRADES_TOPIC} from "./config";
 
 let buyVolume = 0;
 let sellVolume = 0;
@@ -9,7 +10,7 @@ export function getOpenPosition() {
 
 const consumer = new Kafka.KafkaConsumer({
     'group.id': 'frontend-service',
-    'metadata.broker.list': 'kafka:9092'
+    'metadata.broker.list': KAFKA_BROKER_URL
 }, {});
 
 consumer.connect({}, (err, metaData) => {
@@ -22,7 +23,7 @@ consumer.connect({}, (err, metaData) => {
 });
 
 consumer.on('ready', () => {
-    consumer.subscribe(['trades']);
+    consumer.subscribe([TRADES_TOPIC]);
     consumer.consume();
 }).on('data', (data) => {
     if (!data.value) {

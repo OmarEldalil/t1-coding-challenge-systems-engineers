@@ -1,22 +1,25 @@
 # Terra One Coding Challenge for System Engineers
 
-## Goal
+## Infrastructure changes
 
-This challenge is designed to test your ability to handle real-time data processing, implement scalable architectures, and effectively manage distributed microservices.
+### Redis
+- I've introduced in-memory data storage (Redis) to keep the state of trade messages allowing calculation service to horizontally scale without losing state. This allows us to handle trade messages in a distributed manner while ensuring that all messages are processed.
+- I've also chosen Redis time series to store trade messages and do sum aggregation on it to have the max performance and scalability.
+- It's also used in caching PnLs with TTL to increase API performance and reduce load on mongodb database.
 
-## Challenge
-
-You can find the challenge [here](https://docs.google.com/document/d/1fhYF3M1IKbiDjCEj_C0Lnv_SIkPPphhG9sWserl_DtI/)
+## System diagram
 
 ## Setup
 
-1. Fork this repository
-2. Clone the forked repository
-3. Run `npm start` to start all necessary services
-4. Run `npm kafka:setup` to create the necessary Kafka topics
-5. Implement the challenge. We marked all relevant places with `// YOUR CODE HERE` comments
-   - The frontend service is reachable via `http://localhost:3000`. You can use the provided frontend to test your implementation
-6. Push your code to your forked repository
-7. Submit the link to your forked repository
+1. Clone the repository
+2. Run `npm start` to start all services including kafka setup (topics creation)
+3. Open the frontend in your browser at `http://localhost:3000`
 
-Happy Coding 🚀
+## Assumptions
+
+- We really care about consistency, so we handle market message with a configurable* grace period so we can ensure all trade messages are processed by then. Given also that the interval of sending PnL stream is 10 seconds, so it's not a problem to wait for a few seconds.
+- Returned PnLs to the frontend are caped to a certain configurable* number of records and not having it infinite.
+- Calculation service is designed to be stateless, so it can be scaled horizontally without losing state. Number of instances can is configurable* with respect to the number of partitions in trades topic.
+- PnL calculation is the subtraction of sellPrice * sellVolume - buyPrice * buyVolume.
+
+*Configurable values are stored in env variables in docker-compose.yml file.

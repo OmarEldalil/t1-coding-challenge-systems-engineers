@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "docker-compose up",
+    "start": "command -v docker-compose >/dev/null 2>&1 && docker-compose up || docker compose up",
     "kafka:setup": "./kafka-setup.sh"
   }
 }

@@ -4,6 +4,8 @@ services:
     image: mongo:4.4.3
     ports:
       - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
   zookeeper:
     container_name: t1-coding-challenge-zookeeper
@@ -15,21 +17,54 @@ services:
 
   kafka:
     container_name: t1-coding-challenge-kafka
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.9.1
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "9092:9093"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+#      allowing kafka to be reachable from the host machine for debugging and testing
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  redis:
+    container_name: t1-coding-challenge-redis
+    image: redis/redis-stack
+    ports:
+      - "6379:6379"
+
+  kafka-setup:
+    container_name: t1-coding-challenge-kafka-setup
+    image: confluentinc/cp-kafka:7.9.1
+    depends_on:
+      - kafka
+    volumes:
+      - ./kafka-setup.sh:/kafka-setup.sh
+    command: |
+      bash -c "
+        # Wait for Kafka to be ready
+        echo 'Waiting for Kafka to be ready...'
+        while ! kafka-topics --bootstrap-server kafka:9092 --list >/dev/null 2>&1; do
+          echo 'Kafka not ready yet, waiting...'
+          sleep 5
+        done
+        echo 'Kafka is ready! Running setup script...'
+        chmod +x /kafka-setup.sh
+        /kafka-setup.sh
+        echo 'Kafka setup completed!'
+      "
+    networks:
+      - default
 
   kafka-producer:
     container_name: t1-coding-challenge-kafka-producer
     build: ./kafka-producer
     depends_on:
-      - kafka
+      - kafka-setup
 
   frontend-service:
     container_name: t1-coding-challenge-frontend-service
@@ -38,13 +73,26 @@ services:
       - "3001:3001"
     depends_on:
       - kafka-producer
+      - database
+      - redis
+#    I assumed that we shouldn't return more than 10 records in the realtime, but this is configurable, feel free to uncomment the line below and set the desired value
+#    environment:
+#      - MAX_PNL_RECORDS_TO_RETURN=20
 
   calculation-service:
-    container_name: t1-coding-challenge-calculation-service
     build: ./calculation-service
     depends_on:
       - kafka-producer
       - database
+      - redis
+    deploy:
+#      Feel free to change the number of replicas based on your need up to the max number of partitions in the topic (12)
+      replicas: 3
+#   re-emit market messages after X seconds to ensure trades are processed first, assuming that market window comes every 3 seconds so that would be enough
+#   could be changed based on how long it takes to process trades; how many consumers are running.
+#   to change the delay, uncomment the line below and set the desired delay in milliseconds
+#    environment:
+#      - TRANSFORMATION_DELAY_MS=1000
 
   frontend:
     container_name: t1-coding-challenge-frontend
@@ -59,3 +107,5 @@ services:
       - "3000:3000"
     depends_on:
       - frontend-service
+volumes:
+    mongo-data:

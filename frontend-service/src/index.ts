@@ -1,4 +1,4 @@
-import { app } from "./api";
+import {getApi} from "./api";
 
 // const gracefulShutdown = () => {
 //   client.close()
@@ -17,6 +17,11 @@ import { app } from "./api";
 // process.on('SIGQUIT', gracefulShutdown);  // Catches quit signal
 
 
-app.listen(3001, () => {
-  console.log('Frontend service running on port 3001');
-});
+getApi().then(app => {
+    app.listen(3001, () => {
+        console.log('Frontend service running on port 3001');
+    });
+}).catch(err => {
+    console.error('Error starting frontend service:', err);
+    process.exit(1);
+})

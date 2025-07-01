@@ -12,7 +12,7 @@ interface TableProps {
   pnls: Array<PnL>;
 }
 const Table = ({ pnls }: TableProps) => (
-  <table className="table-auto">
+  <table className="w-full text-center">
     <thead>
       <tr>
         <th>Start</th>
@@ -23,9 +23,9 @@ const Table = ({ pnls }: TableProps) => (
     <tbody>
       {pnls.map((pnl) => (
         <tr key={pnl.startTime}>
-          <td>{pnl.startTime}</td>
-          <td>{pnl.endTime}</td>
-          <td>{pnl.pnl}</td>
+          <td className="p-4">{pnl.startTime}</td>
+          <td className="p-4">{pnl.endTime}</td>
+          <td className="p-4">{pnl.pnl}</td>
         </tr>
       ))}
     </tbody>
