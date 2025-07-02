@@ -26,6 +26,7 @@
 - We really care about consistency, so we handle market message with a configurable* grace period so we can ensure all trade messages are processed by then. Given also that the interval of sending PnL stream is 10 seconds, so it's not a problem to wait for a few seconds.
 - Returned PnLs to the frontend are caped to a certain configurable* number of records and not having it infinite.
 - Calculation service is designed to be stateless, so it can be scaled horizontally without losing state. Number of instances can is configurable* with respect to the number of partitions in trades topic.
+- Market message is ensured to be cosumed only once as all consumers belong to the same consumer group
 - PnL calculation is the subtraction of sellPrice * sellVolume - buyPrice * buyVolume.
 
 *Configurable values are stored in env variables in docker-compose.yml file.
