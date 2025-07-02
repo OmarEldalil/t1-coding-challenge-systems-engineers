@@ -16,7 +16,7 @@ export const getPnLsRecords = async ({count = 10}: { count?: number }) => {
         throw new Error('MongoDB collection not initialized');
     }
 
-    return await collection.find({}).sort({startTimeTimeStamp: -1}).project({
+    return await collection.find({}).sort({startTime: -1}).project({
         pnl: 1,
         startTime: 1,
         endTime: 1
