@@ -11,6 +11,10 @@
 
 ![Untitled Diagram drawio](https://github.com/user-attachments/assets/d642dd6d-b49f-4d8f-ba3e-5d8d284ab3d8)
 
+## Prerequisites
+- New version of Docker and Docker compose (Best to be 27.xx and DC v2.xx) to support replicas
+- node version installed with npm
+
 ## Setup
 
 1. Clone the repository
