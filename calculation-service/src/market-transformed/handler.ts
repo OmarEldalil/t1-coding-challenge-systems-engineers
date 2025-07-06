@@ -2,6 +2,7 @@ import Kafka from "node-rdkafka";
 import {convertDateStringToTimestamp} from "../utils/helpers";
 import {deleteTrades, getTradesSum,} from "../trades/db-layer";
 import {storePnl} from "./db-layer";
+import {marketTransformedConsumer} from "../market-transformed/consumer";
 
 export const handleMarketTransformedMessage = async (data: Kafka.Message) => {
     console.log(`Received transformed market message: ${data.value ? data.value.toString() : 'null'}`);
@@ -26,6 +27,8 @@ export const handleMarketTransformedMessage = async (data: Kafka.Message) => {
 
         deleteTrades('BUY', convertDateStringToTimestamp(message.startTime), convertDateStringToTimestamp(message.endTime))
         deleteTrades('SELL', convertDateStringToTimestamp(message.startTime), convertDateStringToTimestamp(message.endTime))
+
+        marketTransformedConsumer.commit(data);
 
     } catch (e) {
         console.error(`Error processing market message: ${e}`);
